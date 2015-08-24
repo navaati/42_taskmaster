@@ -1,0 +1,64 @@
+Gestionnaire de processus (style supervisor ou systemd)
+
+Ce fichier contient la liste des tâches à faire avec des réflexions
+sur l'implémentation et l'avancement du projet.
+
+* Tâches
+  Cette liste est incomplète pour l'instant.
+** Serveur
+*** Merdier de gestion des process
+	Pour cette partie là, y faudrait définir en premier des structures
+	de données et une API desquelles tout le reste serait client.
+
+	Un truc du genre une liste d'objets représentant les services, et
+	des fonctions permettant de les lancer/killer/redémarrer/query,
+	basiquement.
+**** Spawning des process
+	 C'est potentiellement plus compliqué que ça en a l'air, il faut
+	 s'assurer que les process soient dans un environnement clean
+	 (ulimits, umode, environnement, session de tty (je sais pas
+	 exactement ce que c'est mais ça existe), setup des file
+	 descriptors... et peut-être des trucs plus vicieux).
+**** Surveillance de l'état des process
+	 C'est là que ça envoie du lourd (et que tu pleures ta mère),
+	 parce que ça utilise des signaux et TMTC que les signaux UNIX ça
+	 pue la mort.
+**** CGroups usage (Linux only)
+	 Linux a une feature qui permet de foutre les process dans des
+	 groupes, organisés hierarchiquement. L'intérêt dans notre cas est
+	 que les enfants spawnés par les daemons de l'utilisateurs restent
+	 dans le cgroup, donc t'en perds pas la trace et tu peux killer le
+	 process et tous ses enfants au moment de stopper le service.
+
+	 Les cgroups permettent aussi de limiter les parts de CPU, de RAM
+	 ou d'IOs mais bon c'est annexe ça.
+*** Fichier de conf
+**** Structures de données
+**** Parsing
+	 Bon, Zaz conseille d'utiliser du YAML. Pas forcément une mauvaise
+	 idée, et ya sûrement des libs toutes faites.
+*** Gestion des process
+	Ce morceau est le code qui, en fonction de l'état réel des process
+	(tel que suivi par le merdier UNIX) et de la conf, va prendre les
+	mesures pour faire converger les deux. Si on se débrouille bien la
+	convergence initiale (le démarrage de tout le merdier quoi) ne
+	devrait pas être différente du maintient de l'état ou du
+	changement de conf.
+
+	C'est de l'algo poilu maggle. Avec peut-être du graph (eeck).
+*** Shell
+**** IO
+	 Genre tout ce qui est édition de ligne, historique,
+	 éventuellement complétion…
+
+	 Bon, on a droit d'utiliser des libs nan ? Ya readline qui fait
+	 tout ça en user-configurable, keybindings vi/emacs, tout le
+	 tralala (pas sûr que ça fournisse des facilités pour la
+	 complétion par contre).
+**** Langage de contrôle
+	 Pas trop réfléchi… On peut imaginer n'importe quoi, perso j'ai en
+	 tête l'interface de systemd mais c'est pas sous forme de shell,
+	 juste d'arguments à une commande de contrôle.
+** Client
+   Bon c'est optionnel, et vu que c'est obligatoire de faire un shell…
+   D'un autre côté ça permettrait de faire autre chose que du Rust.
